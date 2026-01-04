@@ -6,7 +6,6 @@ mod Worker_thread;
 fn main() {
     let (tx,rx) = mpsc::channel();
 
-   
     loop {
         let thread_tx = tx.clone();
         let command = read_buffer();
