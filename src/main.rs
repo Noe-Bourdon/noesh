@@ -1,32 +1,28 @@
 use std::io;
 use std::sync::mpsc::{self};
 
+use crate::worker_thread::worker;
+
 mod worker_thread;
 
 fn main() {
-    let (tx,_rx) = mpsc::channel();
-
-    loop {
-        let thread_tx = tx.clone();
-        let command = read_buffer();
-        let send_value = command.clone();
-        std::thread::spawn(move || {
-            match thread_tx.send(send_value) {
-                Ok(_) => println!(""),
-                Err(e) => println!("error: {:?}",e),
-            }           
-        });
-       worker_thread::worker::try_revc(&command);
-    }
-    
-    
+    shell_loop();
 }
 
-/// 標準入力
-fn read_buffer() -> String {
-    let mut command = String::new();
-    io::stdin().read_line(&mut command).expect("Failed to read line.");
-    command.trim().to_string()
-} 
+fn shell_loop() {
+    loop {
+        match standard_input() {
+            Ok(cmd) if !cmd.is_empty() => {
+                worker_thread::worker::try_revc(&cmd);
+            }
+            Err(e) => println!("{}",e),
+            _ => return
+        }
+    }
+}
 
-
+fn standard_input() -> Result<String, String> {
+    let mut buffer = String::new();
+    io::stdin().read_line(&mut buffer).expect("Failed to read line");
+    Ok(buffer.trim().to_string())
+}
