@@ -25,4 +25,4 @@ fn standard_input() -> Result<String, String> {
     let mut buffer = String::new();
     io::stdin().read_line(&mut buffer).expect("Failed to read line");
     Ok(buffer.trim().to_string())
-}
+}        
