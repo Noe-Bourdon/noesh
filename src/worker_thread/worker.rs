@@ -1,13 +1,4 @@
 
-
-
-// pub fn try_revc(rx: Receiver<String>) {
-//     //  メッセージが来るまで待ってきたらprintln!する
-//     for receiver in rx {
-//         println!("message{}", receiver);
-//     }  
-// }
-
 enum Token {
     Word, //単語
     Pipe, // |
@@ -36,11 +27,27 @@ enum LexerState {
 }
 
 struct Lexer {
-    parts: Vec<Token>,
-    _state: LexerState,
+    parts: Vec<Token>, //パーツの種類を見る
+    _state: LexerState, //状態の種類を見る
+    position: usize, //どこを読んでいるか
+    store: Vec<usize>, //読み込みデータの置き場
 }
 
 pub fn try_revc(cmd: &str) {
     println!("受信{}",cmd);    
 }
 
+///
+impl Lexer {
+    ///１つ進めるだけの関数
+    fn next_char(&mut self, cmd: &str) -> Option<char> {
+        if self.position >= cmd.len() {
+            return  None;
+        }
+
+        let ch = cmd[self.position];
+        self.position += 1;
+
+        Some(ch)
+    }
+}
