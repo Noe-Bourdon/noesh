@@ -3,6 +3,8 @@ use std::io;
 //ファイルをインポート
 mod lexer;
 
+//
+
 fn main() {
     shell_loop();
 }
@@ -11,6 +13,8 @@ fn shell_loop() {
     loop {
         match standard_input() {
             Ok(cmd) if !cmd.is_empty() => {
+                let mut send = lexer::new(cmd);
+                send.new_state();
 
             }
             Err(e) => println!("{}", e),
