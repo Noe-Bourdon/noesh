@@ -37,4 +37,24 @@ impl Lexer {
         self.position += ch.len_utf8();
         Some(ch)
     }
-}
+
+    fn Lexar_allocation(&mut self, cmd: &str) -> Result<(), String> {
+        //文字があるのかないのかをチェック
+        let ch = match self.new_state(&cmd) {
+            Some(c) => c,
+            None => return Ok(()), 
+        };
+
+        match self._state {
+            LexerState::Nomarl => self.Lexar_nomal(cmd, ch),
+            LexerState::InWord => self.Lexar_InWord(cmd, ch),
+            LexerState::InNextAnd => self.Lexar_NextAnd(cmd, ch),
+        }
+    }
+
+    fn Lexar_nomal(&mut self, cmd: &str, ch: char) -> Result<(), String> {
+        todo!()
+    }
+
+
+}      
