@@ -1,3 +1,5 @@
+use nix::sys::signal::Signal::SIGCONT;
+
 
 
 //トークン
@@ -38,6 +40,7 @@ impl Lexer {
         Some(ch)
     }
 
+
     fn Lexar_allocation(&mut self, cmd: &str) -> Result<(), String> {
         //文字があるのかないのかをチェック
         let ch = match self.new_state(&cmd) {
@@ -46,15 +49,51 @@ impl Lexer {
         };
 
         match self._state {
-            LexerState::Nomarl => self.Lexar_nomal(cmd, ch),
+            LexerState::Nomarl => self.Lexar_Nomal(cmd, ch),
             LexerState::InWord => self.Lexar_InWord(cmd, ch),
             LexerState::InNextAnd => self.Lexar_NextAnd(cmd, ch),
         }
     }
 
-    fn Lexar_nomal(&mut self, cmd: &str, ch: char) -> Result<(), String> {
-        todo!()
+    fn Lexar_Nomal(&mut self, cmd: &str, ch: char) -> Result<(), String> {
+        match ch {
+            ch if ch.is_alphanumeric() => {
+                self.parts.push(Token::Word);
+                self._state = LexerState::InWord;
+                self.store.push(self.position - ch.len_utf8());
+            }
+            //パイプが来た場合パイプ決定
+            '|' => self.parts.push(Token::Pipe),
+            '&' => self._state = LexerState::InNextAnd,
+            _ => eprintln!("すいません。対応していません"),
+        } 
+
+        Ok(())
     }
 
+    fn is_invalid_char(&mut self, ch: char) -> Option<char> {
+        const INVALID: &str = r#"!@#$%^*-_=+./"#;
+        INVALID.contains(ch);
+        Some(ch)
+    }
 
-}      
+    fn Lexar_InWord(&mut self, cmd: &str, ch: char) -> Result<(), String> {
+        let invalid_char = self.is_invalid_char(ch).unwrap();
+
+        if ch == invalid_char {
+            eprintln!("無効な文字です");
+        }
+
+        Ok(())
+    }
+
+    fn Lexar_NextAnd(&mut self, cmd: &str, ch: char) -> Result<(), String> {
+        let mut iter = cmd.chars();
+        if ch == '&' {
+            iter.next();
+            self.parts.push(Token::And);
+            self._state = LexerState::Nomarl;
+        }
+        Ok(())
+    }
+}
