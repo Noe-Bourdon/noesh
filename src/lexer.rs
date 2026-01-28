@@ -1,7 +1,10 @@
 
+
+
+#[derive(Debug, PartialEq)]
 ///トークン
 enum Token {
-    Word, //単語
+    Word(String), //単語
     Pipe, // |
     And,  //　&&
 }
@@ -14,7 +17,7 @@ enum LexerState {
 }
 
 ///管理状態
-struct Lexer {
+pub struct Lexer {
     parts: Vec<Token>,
     _state: LexerState,
     position: usize,
@@ -61,7 +64,8 @@ impl Lexer {
     fn Lexar_Nomal(&mut self, cmd: &str, ch: char) -> Result<(), String> {
         match ch {
             ch if ch.is_alphanumeric() => {
-                self.parts.push(Token::Word);
+                //Stringを新しく作ってるだけで値が入るわけではない
+                self.parts.push(Token::Word(String::new()));
                 self._state = LexerState::InWord;
                 self.store.push(self.position - ch.len_utf8());
             }
@@ -86,9 +90,10 @@ impl Lexer {
         if ch == invalid_char {
             eprintln!("無効な文字です");
         } else {
-            self.parts.push(Token::Word);
-            self._state = LexerState::Nomarl;
-            self.store.push(self.position - ch.len_utf8());
+            let start = self.store.pop().unwrap();
+            let end = self.position - ch.len_utf8();
+            let word = &cmd[start..end];
+            self.parts.push(Token::Word(word.to_string()));
         }
 
         Ok(self._state = LexerState::Nomarl) 
@@ -109,9 +114,20 @@ impl Lexer {
 //テスト
 #[cfg(test)]
 mod lexer {
+    use crate::lexer::{self, Lexer, Token};
 
     #[test]
     fn test_pipe() {
+        let mut lexer = Lexer::new();
+        lexer.Lexar_allocation("echo hello | grep h").unwrap();
+        let e = vec![
+            lexer::Token::Word("echo".into()),
+            lexer::Token::Word("hello".into()),
+            lexer::Token::Pipe,
+            lexer::Token::Word("grep".into()),
+            lexer::Token::Word("h".into()),
+        ];
 
+        assert_eq!(lexer.parts, e);
     }
 }
