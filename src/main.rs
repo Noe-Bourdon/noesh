@@ -14,6 +14,7 @@ fn shell_loop() {
         match standard_input() {
             Ok(cmd) if !cmd.is_empty() => {
                 let mut send = lexer::Lexer::new();
+                
                 send.new_state(&cmd);
 
             }
