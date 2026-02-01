@@ -44,22 +44,15 @@ impl Lexer {
         Some(ch)
     }
 
-    fn Lexar_allocation(&mut self, cmd: &str) -> Result<(), String> {
-        //文字があるのかないのかをチェック
-        let ch = match self.new_state(&cmd) {
-            Some(c) => c,
-            None => return Ok(()),
-        };
-
-        //コマンドのpositonを進めながら、１文字ずつ読みって状態返還を行うループ
+    fn lexar_allocation(&mut self, cmd: &str) -> Result<(), String> {
+        //lldbにて確認
         while self.position < cmd.len() {
-            println!("{}",cmd);
-            let ch = self.new_state(cmd).unwrap();
+            let ch = self.new_state(&cmd).unwrap();
             match self._state {
                 LexerState::Nomarl => self.Lexar_Nomal(cmd, ch).unwrap(),
                 LexerState::InWord => self.Lexar_InWord(cmd, ch).unwrap(),
                 LexerState::InNextAnd => self.Lexar_NextAnd(cmd, ch).unwrap(),
-            }
+            } 
         }
         Ok(())
     }
@@ -95,7 +88,7 @@ impl Lexer {
             self.store.push(self.position - ch.len_utf8());
             self._state = LexerState::InWord;
             let start = self.store.pop().expect("panic");
-            dbg!("",&self.store, self.position, ch);
+            dbg!("fff",&self.store, self.position, ch);
             let end = self.position - ch.len_utf8();
             let word = &cmd[start..end];
             self.parts.push(Token::Word(word.to_string()));
@@ -125,7 +118,7 @@ mod lexer {
     #[test]
     fn test_pipe() {
         let mut lexer = Lexer::new();
-        lexer.Lexar_allocation("echo hello | grep h").unwrap();
+        lexer.lexar_allocation("echo hello | grep h").unwrap();
         dbg!(&lexer);
         let e = vec![
             lexer::Token::Word("echo".into()),
