@@ -9,6 +9,7 @@ enum Token {
     And,  //　&&
 }
 
+#[derive(Debug)]
 ///レキサーの状態
 enum LexerState {
     Nomarl,    //通常
@@ -16,6 +17,7 @@ enum LexerState {
     InNextAnd, //&の次が&&かを判定
 }
 
+#[derive(Debug)]
 ///管理状態
 pub struct Lexer {
     parts: Vec<Token>,
@@ -42,21 +44,15 @@ impl Lexer {
         Some(ch)
     }
 
-    fn Lexar_allocation(&mut self, cmd: &str) -> Result<(), String> {
-        //文字があるのかないのかをチェック
-        let ch = match self.new_state(&cmd) {
-            Some(c) => c,
-            None => return Ok(()),
-        };
-
-        //コマンドのpositonを進めながら、１文字ずつ読みって状態返還を行うループ
+    fn lexar_allocation(&mut self, cmd: &str) -> Result<(), String> {
+        //lldbにて確認
         while self.position < cmd.len() {
-            let ch = self.new_state(cmd).unwrap();
+            let ch = self.new_state(&cmd).unwrap();
             match self._state {
                 LexerState::Nomarl => self.Lexar_Nomal(cmd, ch).unwrap(),
                 LexerState::InWord => self.Lexar_InWord(cmd, ch).unwrap(),
                 LexerState::InNextAnd => self.Lexar_NextAnd(cmd, ch).unwrap(),
-            }
+            } 
         }
         Ok(())
     }
@@ -64,10 +60,8 @@ impl Lexer {
     fn Lexar_Nomal(&mut self, cmd: &str, ch: char) -> Result<(), String> {
         match ch {
             ch if ch.is_alphanumeric() => {
-                //Stringを新しく作ってるだけで値が入るわけではない
-                self.parts.push(Token::Word(String::new()));
-                self._state = LexerState::InWord;
                 self.store.push(self.position - ch.len_utf8());
+                self._state = LexerState::InWord;
             }
             //パイプが来た場合パイプ決定
             '|' => self.parts.push(Token::Pipe),
@@ -89,11 +83,16 @@ impl Lexer {
 
         if ch == invalid_char {
             eprintln!("無効な文字です");
-        } else {
-            let start = self.store.pop().unwrap();
+        } else if ch.is_alphabetic()  {
+            //値が入ってなくてパニックだからデバッガーで治療中　lldb
+            self.store.push(self.position - ch.len_utf8());
+            self._state = LexerState::InWord;
+            let start = self.store.pop().expect("panic");
+            dbg!("fff",&self.store, self.position, ch);
             let end = self.position - ch.len_utf8();
             let word = &cmd[start..end];
             self.parts.push(Token::Word(word.to_string()));
+
         }
 
         Ok(self._state = LexerState::Nomarl) 
@@ -119,7 +118,8 @@ mod lexer {
     #[test]
     fn test_pipe() {
         let mut lexer = Lexer::new();
-        lexer.Lexar_allocation("echo hello | grep h").unwrap();
+        lexer.lexar_allocation("echo hello | grep h").unwrap();
+        dbg!(&lexer);
         let e = vec![
             lexer::Token::Word("echo".into()),
             lexer::Token::Word("hello".into()),
