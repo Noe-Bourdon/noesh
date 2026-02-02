@@ -13,10 +13,8 @@ fn shell_loop() {
     loop {
         match standard_input() {
             Ok(cmd) if !cmd.is_empty() => {
-                let mut send = lexer::Lexer::new();
-                while let Some(ch) = send.new_state(&cmd) {
-                    print!("{}",ch);   
-                }
+                let mut lex = lexer::Lexer::new();
+                lex.lexar_allocation(&cmd).unwrap();
             }
             Err(e) => println!("{}", e),
             _ => return,
