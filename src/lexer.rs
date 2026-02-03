@@ -37,28 +37,29 @@ impl Lexer {
     }
 
     ///positionを使って、cmdの文字をひとずつ進める関数
-    pub fn new_state(&mut self, cmd: &str) -> Option<char> {
+    fn new_state(&mut self, cmd: &str) -> Option<char> {
         let mut iter = cmd[self.position..].chars();
         let ch = iter.next()?;
         self.position += ch.len_utf8();
         Some(ch)
     }
 
-    fn lexar_allocation(&mut self, cmd: &str) -> Result<(), String> {
+     pub fn lexar_allocation(&mut self, cmd: &str) -> Result<(), String> {
         //lldbにて確認
         while self.position < cmd.len() {
             let ch = self.new_state(&cmd).unwrap();
             match self._state {
-                LexerState::Nomarl => self.Lexar_Nomal(cmd, ch).unwrap(),
-                LexerState::InWord => self.Lexar_InWord(cmd, ch).unwrap(),
-                LexerState::InNextAnd => self.Lexar_NextAnd(cmd, ch).unwrap(),
+                LexerState::Nomarl => self.lexar_nomal(cmd, ch).unwrap(),
+                LexerState::InWord => self.lexar_inWord(cmd, ch).unwrap(),
+                LexerState::InNextAnd => self.lexar_nextand(cmd, ch).unwrap(),
             } 
         }
         Ok(())
     }
 
-    fn Lexar_Nomal(&mut self, cmd: &str, ch: char) -> Result<(), String> {
+    fn lexar_nomal(&mut self, cmd: &str, ch: char) -> Result<(), String> {
         match ch {
+            //何もしてないのpushしてるから説
             ch if ch.is_alphanumeric() => {
                 self.store.push(self.position - ch.len_utf8());
                 self._state = LexerState::InWord;
@@ -78,12 +79,13 @@ impl Lexer {
         Some(ch)
     }
 
-    fn Lexar_InWord(&mut self, cmd: &str, ch: char) -> Result<(), String> {
+    fn lexar_inWord(&mut self, cmd: &str, ch: char) -> Result<(), String> {
         let invalid_char = self.is_invalid_char(ch).unwrap();
 
         if ch == invalid_char {
             eprintln!("無効な文字です");
         } else if ch.is_alphabetic()  {
+            println!("gg");
             //値が入ってなくてパニックだからデバッガーで治療中　lldb
             self.store.push(self.position - ch.len_utf8());
             self._state = LexerState::InWord;
@@ -98,7 +100,7 @@ impl Lexer {
         Ok(self._state = LexerState::Nomarl) 
     }
 
-    fn Lexar_NextAnd(&mut self, cmd: &str, ch: char) -> Result<(), String> {
+    fn lexar_nextand(&mut self, cmd: &str, ch: char) -> Result<(), String> {
         let mut iter = cmd.chars();
         if ch == '&' {
             iter.next();
@@ -113,7 +115,7 @@ impl Lexer {
 //テスト
 #[cfg(test)]
 mod lexer {
-    use crate::lexer::{self, Lexer, Token};
+    use crate::lexer::{self, Lexer};
 
     #[test]
     fn test_pipe() {
