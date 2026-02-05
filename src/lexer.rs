@@ -1,15 +1,12 @@
-
-
-
 #[derive(Debug, PartialEq)]
 ///トークン
 enum Token {
     Word(String), //単語
-    Pipe, // |
-    And,  //　&&
+    Pipe,         // |
+    And,          //　&&
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 ///レキサーの状態
 enum LexerState {
     Nomarl,    //通常
@@ -20,10 +17,10 @@ enum LexerState {
 #[derive(Debug)]
 ///管理状態
 pub struct Lexer {
-    parts: Vec<Token>,
-    _state: LexerState,
+    parts: Vec<Token>,  //完成した単語を入れる箱
+    _state: LexerState, //今のレキサーの状態
     position: usize,
-    store: Vec<usize>,
+    store: Vec<usize>, //単語の最初の位置を入れる箱
 }
 
 impl Lexer {
@@ -44,15 +41,22 @@ impl Lexer {
         Some(ch)
     }
 
-     pub fn lexar_allocation(&mut self, cmd: &str) -> Result<(), String> {
+    pub fn lexar_allocation(&mut self, cmd: &str) -> Result<(), String> {
         //lldbにて確認
         while self.position < cmd.len() {
             let ch = self.new_state(&cmd).unwrap();
             match self._state {
                 LexerState::Nomarl => self.lexar_nomal(cmd, ch).unwrap(),
-                LexerState::InWord => self.lexar_inWord(cmd, ch).unwrap(),
+                LexerState::InWord => self.lexar_inword(cmd, ch).unwrap(),
                 LexerState::InNextAnd => self.lexar_nextand(cmd, ch).unwrap(),
-            } 
+            }
+        }
+
+        //単語の終了判定
+        if self._state == LexerState::InWord {
+            let start = self.store.pop().unwrap();
+            let word = &cmd[start..self.position];
+            self.parts.push(Token::Word(word.to_string()));
         }
         Ok(())
     }
@@ -73,31 +77,24 @@ impl Lexer {
         Ok(())
     }
 
-    fn is_invalid_char(&mut self, ch: char) -> Option<char> {
+    fn is_invalid_char(&mut self, ch: char) -> bool {
         const INVALID: &str = r#"!@#$%^*-_=+./"#;
-        INVALID.contains(ch);
-        Some(ch)
+        INVALID.contains(ch)
     }
 
-    fn lexar_inWord(&mut self, cmd: &str, ch: char) -> Result<(), String> {
-        let invalid_char = self.is_invalid_char(ch).unwrap();
-
-        if ch == invalid_char {
-            eprintln!("無効な文字です");
-        } else if ch.is_alphabetic()  {
-            println!("gg");
-            //値が入ってなくてパニックだからデバッガーで治療中　lldb
-            self.store.push(self.position - ch.len_utf8());
+    fn lexar_inword(&mut self, cmd: &str, ch: char) -> Result<(), String> {
+        if self.is_invalid_char(ch) {
+            return Err("無効な文字です".into());
+        } else if ch.is_alphabetic() {
             self._state = LexerState::InWord;
-            let start = self.store.pop().expect("panic");
-            dbg!("fff",&self.store, self.position, ch);
-            let end = self.position - ch.len_utf8();
-            let word = &cmd[start..end];
-            self.parts.push(Token::Word(word.to_string()));
-
+        } else {
+            if let Some(start) = self.store.pop() {
+                let word: &str = &cmd[start..self.position - ch.len_utf8()];
+                self.parts.push(Token::Word(word.to_string()));
+            }
+            self._state = LexerState::Nomarl;
         }
-
-        Ok(self._state = LexerState::Nomarl) 
+        Ok(())
     }
 
     fn lexar_nextand(&mut self, cmd: &str, ch: char) -> Result<(), String> {
@@ -133,3 +130,5 @@ mod lexer {
         assert_eq!(lexer.parts, e);
     }
 }
+
+//＆＆のテスト
