@@ -2,6 +2,7 @@ use std::io;
 
 //ファイルをインポート
 mod lexer;
+mod parser;
 
 //
 
