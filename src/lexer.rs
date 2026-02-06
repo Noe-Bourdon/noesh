@@ -4,6 +4,7 @@ enum Token {
     Word(String), //単語
     Pipe,         // |
     And,          //　&&
+    //バックグラウンドで実行も追加
 }
 
 #[derive(Debug, PartialEq)]
