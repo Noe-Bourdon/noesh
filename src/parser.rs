@@ -1,7 +1,4 @@
-use crate::lexer::{self, Lexer};
-
-
-
+use crate::lexer::Token;
 /// ASTのパイプの場合の設計図
 /// AST::Pipe (
 ///     Box::new(AST::Command(Command {name: echo, args: ["hello"] })),
@@ -26,5 +23,14 @@ pub enum AST {
     Pipe(Box<AST>, Box<AST>),
 }
 
+pub struct Parser {
+    tokens: Vec<Token>,
+    position: usize,
+}
 
-
+impl Parser {
+    pub fn new(tokens: Vec<Token>) -> Self {
+        Parser { tokens, position: 0 }
+    }
+}
+     

@@ -1,6 +1,6 @@
 #[derive(Debug, PartialEq)]
 ///トークン
-enum Token {
+pub enum Token {
     Word(String), //単語
     Pipe,         // |
     And,          //　&&
@@ -18,7 +18,7 @@ enum LexerState {
 #[derive(Debug)]
 ///管理状態
 pub struct Lexer {
-    parts: Vec<Token>,  //完成した単語を入れる箱
+    pub parts: Vec<Token>,  //完成した単語を入れる箱
     _state: LexerState, //今のレキサーの状態
     position: usize,
     store: Vec<usize>, //単語の最初の位置を入れる箱
