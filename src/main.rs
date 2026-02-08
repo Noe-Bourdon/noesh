@@ -16,6 +16,7 @@ fn shell_loop() {
             Ok(cmd) if !cmd.is_empty() => {
                 let mut lex = lexer::Lexer::new();
                 lex.lexar_allocation(&cmd).unwrap();
+
             }
             Err(e) => println!("{}", e),
             _ => return,
