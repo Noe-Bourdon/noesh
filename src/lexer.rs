@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 ///トークン
 pub enum Token {
     Word(String), //単語
